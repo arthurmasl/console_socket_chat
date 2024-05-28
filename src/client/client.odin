@@ -24,11 +24,13 @@ main :: proc() {
 
 write_to_server :: proc(server: net.TCP_Socket) {
   buffer := make([]u8, 1024)
+  defer delete(buffer)
 
   for {
     n, line_err := os.read(os.stdin, buffer)
-    if line_err != 0 {
+    if line_err < 0 {
       fmt.println("read line error")
+      return
     }
 
     message := buffer[:n - 1]
@@ -38,16 +40,19 @@ write_to_server :: proc(server: net.TCP_Socket) {
 
 read_from_server :: proc(server: net.TCP_Socket) {
   buffer := make([]u8, 1024)
+  defer delete(buffer)
 
-  recv, recv_err := net.recv_tcp(server, buffer)
+  for {
+    recv, recv_err := net.recv_tcp(server, buffer)
 
-  if recv_err != nil {
-    fmt.println("Recv error")
+    if recv_err != nil {
+      fmt.println("Recv error")
+    }
+
+    if recv == 0 {
+      fmt.println("Server disconnected")
+    }
+
+    fmt.printfln("Received from server: %s", recv)
   }
-
-  if recv == 0 {
-    fmt.println("Server disconnected")
-  }
-
-  fmt.printfln("Received from server: %s", recv)
 }

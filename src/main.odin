@@ -33,6 +33,8 @@ handle_client :: proc(client: net.TCP_Socket) {
   fmt.println("Client conntected")
 
   buffer := make([]u8, 1024)
+  defer delete(buffer)
+
   for {
     recv, recv_err := net.recv_tcp(client, buffer)
 
