@@ -47,23 +47,22 @@ accept_client :: proc(server: net.TCP_Socket) -> net.TCP_Socket {
 
 handle_client :: proc(client: net.TCP_Socket) {
   client := client
-  defer net.close(client)
-
   buffer := make([]u8, 1024)
-  defer delete(buffer)
 
   for {
     n, recv_err := net.recv(client, buffer)
-
     if recv_err != nil do fmt.println("Recv error")
+
     if n == 0 {
       disconnect_user(client)
       break
     }
 
-    message := buffer[:n]
-    send_to_users(client, message)
+    send_to_users(client, buffer[:n])
   }
+
+  defer net.close(client)
+  defer delete(buffer)
 }
 
 disconnect_user :: proc(id: net.TCP_Socket) {
