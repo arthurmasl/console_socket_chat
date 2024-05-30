@@ -2,6 +2,7 @@ package main
 
 import "core:fmt"
 import "core:net"
+import "core:thread"
 
 users_count: u32
 
@@ -21,7 +22,9 @@ main :: proc() {
     client, source, tcp_err := net.accept_tcp(socket)
     if tcp_err != nil do fmt.println("Client error")
 
-    handle_client(client)
+    thread.create_and_start_with_data(&client, proc(data: rawptr) {
+      handle_client((^net.TCP_Socket)(data)^)
+    })
   }
 
 }
