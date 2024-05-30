@@ -1,10 +1,12 @@
 package main
 
 import "core:fmt"
+import "core:math/big"
 import "core:net"
+import "core:strings"
 import "core:thread"
 
-users_count: u32
+users: [dynamic]net.TCP_Socket
 
 main :: proc() {
   endpoint := net.Endpoint {
@@ -22,6 +24,9 @@ main :: proc() {
     client, source, tcp_err := net.accept_tcp(socket)
     if tcp_err != nil do fmt.println("Client error")
 
+    fmt.printfln("User%d conntected", client)
+    append(&users, client)
+
     thread.create_and_start_with_data(&client, proc(data: rawptr) {
       handle_client((^net.TCP_Socket)(data)^)
     })
@@ -30,8 +35,7 @@ main :: proc() {
 }
 
 handle_client :: proc(client: net.TCP_Socket) {
-  fmt.println("Client conntected")
-  users_count += 1
+  client := client
   defer net.close(client)
 
   buffer := make([]u8, 1024)
@@ -42,13 +46,15 @@ handle_client :: proc(client: net.TCP_Socket) {
 
     if recv_err != nil do fmt.println("Recv error")
     if n == 0 {
-      users_count -= 1
       fmt.println("User disconnected")
       break
     }
 
     message := buffer[:n]
-    fmt.printfln("User%d: %s", users_count, string(message))
-    net.send(client, message)
+    fmt.printfln("User%d: %s", client, message)
+
+    for &user in users {
+      if user != client do net.send(user, message)
+    }
   }
 }
