@@ -21,21 +21,27 @@ get_socket :: proc() -> net.TCP_Socket {
 
 main :: proc() {
   fmt.println("connected")
+  socket := get_socket()
 
-  t1 := thread.create_and_start(proc() {
-    socket := get_socket()
-    write_to_server(socket)
+  t1 := thread.create_and_start_with_data(&socket, proc(data: rawptr) {
+    write_to_server((^net.TCP_Socket)(data)^)
   })
 
-  t2 := thread.create_and_start(proc() {
-    socket := get_socket()
-    read_from_server(socket)
+  t2 := thread.create_and_start_with_data(&socket, proc(data: rawptr) {
+    read_from_server((^net.TCP_Socket)(data)^)
   })
 
   for {
-    // fmt.println("t1", thread.is_done(t1))
-    // fmt.println("t2", thread.is_done(t2))
+    t1_done := thread.is_done(t1)
+    t2_done := thread.is_done(t2)
+
+    if t1_done do thread.terminate(t1, 0)
+    if t2_done do thread.terminate(t2, 0)
+
+    if t1_done && t2_done do break
   }
+
+  fmt.println("done")
 }
 
 write_to_server :: proc(server: net.TCP_Socket) {
@@ -43,7 +49,6 @@ write_to_server :: proc(server: net.TCP_Socket) {
   defer delete(buffer)
 
   for {
-    fmt.println("write")
     input := get_input(buffer)
     net.send(server, input)
   }
@@ -62,12 +67,12 @@ read_from_server :: proc(server: net.TCP_Socket) {
   defer delete(buffer)
 
   for {
-    fmt.println("read")
     n, recv_err := net.recv_tcp(server, buffer)
 
     if recv_err != nil do fmt.println("Recv error")
     if n == 0 do fmt.println("Server disconnected")
 
-    fmt.printfln("Received from server: %s", n)
+    message := buffer[:n]
+    fmt.printfln("Received from server: %s", string(message))
   }
 }

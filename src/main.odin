@@ -44,8 +44,8 @@ handle_client :: proc(client: net.TCP_Socket) {
       break
     }
 
-    message := string(buffer[:n])
-    fmt.printfln("User%d: %s", users_count, message)
-    net.send(client, buffer)
+    message := buffer[:n]
+    fmt.printfln("User%d: %s", users_count, string(message))
+    net.send(client, message)
   }
 }
