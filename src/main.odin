@@ -35,7 +35,7 @@ handle_client :: proc(client: net.TCP_Socket) {
   defer delete(buffer)
 
   for {
-    n, recv_err := net.recv_tcp(client, buffer)
+    n, recv_err := net.recv(client, buffer)
 
     if recv_err != nil do fmt.println("Recv error")
     if n == 0 {

@@ -64,7 +64,10 @@ read_from_server :: proc(server: net.TCP_Socket) {
     n, recv_err := net.recv_tcp(server, buffer)
 
     if recv_err != nil do fmt.println("Recv error")
-    if n == 0 do fmt.println("Server disconnected")
+    if n == 0 {
+      fmt.println("Server disconnected")
+      break
+    }
 
     message := buffer[:n]
     fmt.printfln("Received from server: %s", string(message))
