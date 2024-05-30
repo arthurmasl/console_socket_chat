@@ -53,7 +53,6 @@ get_input :: proc(buffer: []u8) -> []u8 {
   if line_err < 0 do fmt.println("read line error")
 
   return buffer[:n - 1]
-
 }
 
 read_from_server :: proc(server: net.TCP_Socket) {
