@@ -10,7 +10,6 @@ users: [dynamic]net.TCP_Socket
 
 main :: proc() {
   server := init_server()
-  defer net.close(server)
 
   for {
     client := accept_client(server)
@@ -19,6 +18,8 @@ main :: proc() {
       handle_client((^net.TCP_Socket)(data)^)
     })
   }
+
+  defer net.close(server)
 }
 
 init_server :: proc() -> net.TCP_Socket {
@@ -30,6 +31,7 @@ init_server :: proc() -> net.TCP_Socket {
 
   socket, socket_err := net.listen_tcp(endpoint)
   if socket_err != nil do fmt.println("Failet to create server")
+
   fmt.printfln("Server started on port %d", port)
 
   return socket
@@ -50,19 +52,27 @@ handle_client :: proc(client: net.TCP_Socket) {
   buffer := make([]u8, 1024)
 
   for {
-    n, recv_err := net.recv(client, buffer)
-    if recv_err != nil do fmt.println("Recv error")
+    message, disconnected := receive_message(client, buffer)
 
-    if n == 0 {
+    if disconnected {
       disconnect_user(client)
       break
     }
 
-    send_to_users(client, buffer[:n])
+    send_to_users(client, buffer[:message])
   }
 
   defer net.close(client)
   defer delete(buffer)
+}
+
+receive_message :: proc(client: net.TCP_Socket, buffer: []u8) -> (int, bool) {
+  message, recv_err := net.recv(client, buffer)
+
+  if recv_err != nil do fmt.println("Receive error")
+  if message == 0 do return message, true
+
+  return message, false
 }
 
 disconnect_user :: proc(id: net.TCP_Socket) {
