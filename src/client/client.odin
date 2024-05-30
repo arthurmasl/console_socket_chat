@@ -5,7 +5,7 @@ import "core:net"
 import "core:os"
 import "core:thread"
 
-get_socket :: proc() -> net.TCP_Socket {
+main :: proc() {
   endpoint := net.Endpoint {
     address = net.IP4_Any,
     port    = 8000,
@@ -14,14 +14,8 @@ get_socket :: proc() -> net.TCP_Socket {
   socket, socket_err := net.dial_tcp(endpoint)
   if socket_err != nil do fmt.println("Failed to connect")
 
-  // defer net.close(socket)
-
-  return socket
-}
-
-main :: proc() {
   fmt.println("connected")
-  socket := get_socket()
+  defer net.close(socket)
 
   t1 := thread.create_and_start_with_data(&socket, proc(data: rawptr) {
     write_to_server((^net.TCP_Socket)(data)^)
