@@ -57,12 +57,22 @@ handle_client :: proc(client: net.TCP_Socket) {
 
     if recv_err != nil do fmt.println("Recv error")
     if n == 0 {
-      fmt.println("User disconnected")
+      disconnect_user(client)
       break
     }
 
     message := buffer[:n]
     send_to_users(client, message)
+  }
+}
+
+disconnect_user :: proc(id: net.TCP_Socket) {
+  fmt.println("User disconnected")
+
+  for &user, index in users {
+    if user == id {
+      ordered_remove(&users, index)
+    }
   }
 }
 
