@@ -30,7 +30,7 @@ init_server :: proc() -> net.TCP_Socket {
   }
 
   socket, socket_err := net.listen_tcp(endpoint)
-  if socket_err != nil do fmt.println("Failet to create server")
+  if socket_err != nil do panic("Failet to create server")
 
   fmt.printfln("Server started on port %d", port)
 
@@ -39,7 +39,7 @@ init_server :: proc() -> net.TCP_Socket {
 
 accept_client :: proc(server: net.TCP_Socket) -> net.TCP_Socket {
   client, source, tcp_err := net.accept_tcp(server)
-  if tcp_err != nil do fmt.println("Client error")
+  if tcp_err != nil do panic("Client error")
 
   fmt.printfln("User%d conntected", client)
   append(&users, client)
@@ -69,7 +69,7 @@ handle_client :: proc(client: net.TCP_Socket) {
 receive_message :: proc(client: net.TCP_Socket, buffer: []u8) -> (int, bool) {
   message, recv_err := net.recv(client, buffer)
 
-  if recv_err != nil do fmt.println("Receive error")
+  if recv_err != nil do panic("Receive error")
   if message == 0 do return message, true
 
   return message, false

@@ -12,7 +12,7 @@ main :: proc() {
   }
 
   socket, socket_err := net.dial_tcp(endpoint)
-  if socket_err != nil do fmt.println("Failed to connect")
+  if socket_err != nil do panic("Failed to connect")
 
   fmt.println("connected")
   defer net.close(socket)
@@ -50,7 +50,7 @@ write_to_server :: proc(server: net.TCP_Socket) {
 
 get_input :: proc(buffer: []u8) -> []u8 {
   n, line_err := os.read(os.stdin, buffer)
-  if line_err < 0 do fmt.println("read line error")
+  if line_err < 0 do panic("read line error")
 
   return buffer[:n - 1]
 }
@@ -62,7 +62,7 @@ read_from_server :: proc(server: net.TCP_Socket) {
   for {
     n, recv_err := net.recv_tcp(server, buffer)
 
-    if recv_err != nil do fmt.println("Recv error")
+    if recv_err != nil do panic("Recv error")
     if n == 0 {
       fmt.println("Server disconnected")
       break
